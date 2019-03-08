@@ -1,0 +1,85 @@
+---
+title: "Practical Machine Learning - Course Project"
+author: "Joris Vroegop"
+date: "7 maart 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Background
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: http://groupware.les.inf.puc-rio.br/har (see the section on the Weight Lifting Exercise Dataset).
+
+## Libraries
+
+```{r, echo=FALSE}
+library(caret)
+library(randomForest)
+```
+
+## Loading data
+
+```{r}
+TrainData <- read.csv(url("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"),header=TRUE)
+dim(TrainData)
+TestData <- read.csv(url("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"),header=TRUE)
+dim(TestData)
+```
+
+### Cleaning data
+If we look at the data, many of the 160 variables are (nearly) empty, therefore we remove the columns with more than 80% NAs in the training set . We remove the same columns in the test set.
+```{r}
+indColToRemove <- which(colSums(is.na(TrainData) |TrainData=="")>0.8*dim(TrainData)[1]) 
+TrainDataClean <- TrainData[,-indColToRemove]
+TrainDataClean <- TrainDataClean[,-c(1:7)]
+dim(TrainDataClean)
+
+TestDataClean <- TestData[,-indColToRemove]
+TestDataClean <- TestDataClean[,-c(1:7)]
+dim(TestDataClean)
+```
+## Model building
+
+### Train/test split for cross validation
+We split the training set into another training and test set which we can use to determine our (out of sample) accuracy.
+
+```{r}
+set.seed(11)
+inTrain1 <- createDataPartition(TrainDataClean$classe, p=0.7, list=FALSE)
+Train1 <- TrainDataClean[inTrain1,]
+Test1 <- TrainDataClean[-inTrain1,]
+dim(Train1) 
+```
+Let's use the well-known random forest machine learnig algorithm to predict **classe**. During the training we use cross-validation to find the optimal model within computational/time limits.
+
+```{r}
+trControl <- trainControl(method="cv", number=5)
+model_rf <- train(classe~., data=Train1, method="rf", trControl=trControl, verbose=FALSE)
+```
+
+Now we check how good the model actually performs by checking how accurate it predicts on our created test set. 
+```{r}
+testpred <- predict(model_rf,newdata=Test1)
+confMatRF <- confusionMatrix(Test1$classe,testpred)
+
+# display confusion matrix and model accuracy
+confMatRF$table
+acc <- confMatRF$overall[1]
+acc
+```
+That is a very high accuracy of `r acc` reached by using a 5-fold cross-validation. Therefore the expected out of sample error is `r 1-acc`.
+
+Now let's check the most important variables in the model:
+```{r}
+imp_var <- varImp(model_rf)
+imp_var
+```
+
+## Conclusion
+Since we built a good working model, we can now predict the **classe** of our real test set (20 obs).
+```{r}
+FinalTestPred <- predict(model_rf,newdata=TestDataClean)
+FinalTestPred
+```
