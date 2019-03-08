@@ -14,7 +14,7 @@ Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible t
 
 ## Libraries
 
-```{r, echo=FALSE}
+```{r}
 library(caret)
 library(randomForest)
 ```

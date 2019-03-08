@@ -134,11 +134,17 @@ $(document).ready(function () {
 </div>
 <div id="libraries" class="section level2">
 <h2>Libraries</h2>
+<pre class="r"><code>library(caret)</code></pre>
 <pre><code>## Loading required package: lattice</code></pre>
 <pre><code>## Loading required package: ggplot2</code></pre>
+<pre class="r"><code>library(randomForest)</code></pre>
 <pre><code>## randomForest 4.6-14</code></pre>
 <pre><code>## Type rfNews() to see new features/changes/bug fixes.</code></pre>
-<pre><code>## Attaching package: 'randomForest'</code></pre>
+<pre><code>## 
+## Attaching package: 'randomForest'</code></pre>
+<pre><code>## The following object is masked from 'package:ggplot2':
+## 
+##     margin</code></pre>
 </div>
 <div id="loading-data" class="section level2">
 <h2>Loading data</h2>
@@ -151,7 +157,7 @@ dim(TestData)</code></pre>
 <div id="cleaning-data" class="section level3">
 <h3>Cleaning data</h3>
 <p>If we look at the data, many of the 160 variables are (nearly) empty, therefore we remove the columns with more than 80% NAs in the training set . We remove the same columns in the test set.</p>
-<pre class="r"><code>indColToRemove &lt;- which(colSums(is.na(TrainData) |TrainData==&quot;&quot;)&gt;0.8*dim(TrainData)[1])
+<pre class="r"><code>indColToRemove &lt;- which(colSums(is.na(TrainData) |TrainData==&quot;&quot;)&gt;0.8*dim(TrainData)[1]) 
 TrainDataClean &lt;- TrainData[,-indColToRemove]
 TrainDataClean &lt;- TrainDataClean[,-c(1:7)]
 dim(TrainDataClean)</code></pre>
@@ -191,16 +197,16 @@ confMatRF$table</code></pre>
 ##          E    0    0    2    1 1079</code></pre>
 <pre class="r"><code>acc &lt;- confMatRF$overall[1]
 acc</code></pre>
-<pre><code>##  Accuracy
+<pre><code>##  Accuracy 
 ## 0.9943925</code></pre>
 <p>That is a very high accuracy of 0.9943925 reached by using a 5-fold cross-validation. Therefore the expected out of sample error is 0.0056075.</p>
 <p>Now let’s check the most important variables in the model:</p>
 <pre class="r"><code>imp_var &lt;- varImp(model_rf)
 imp_var</code></pre>
 <pre><code>## rf variable importance
-##
+## 
 ##   only 20 most important variables shown (out of 52)
-##
+## 
 ##                   Overall
 ## roll_belt          100.00
 ## yaw_belt            75.46
